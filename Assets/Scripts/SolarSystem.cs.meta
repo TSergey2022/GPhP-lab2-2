@@ -1,0 +1,20 @@
+fileFormatVersion: 2
+guid: 5ae999204a573db98837ff84be0dbda4
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - Sun: {fileID: 11400000, guid: 062e1d9e9da5f6e5490dce8b19398f05, type: 2}
+  - Mercury: {fileID: 11400000, guid: b0bacf6cb7f09093395acb071192b527, type: 2}
+  - Venus: {fileID: 11400000, guid: 5810cec23a369fdf0bccbc110043afd9, type: 2}
+  - Earth: {fileID: 11400000, guid: 4f2a0372c8b3d91d2b3274ee512c0e0e, type: 2}
+  - Mars: {fileID: 11400000, guid: c40b9a1fc063b0e649c881af8777937d, type: 2}
+  - Jupiter: {fileID: 11400000, guid: 5e7e4cd12c9066210b44e336921a4964, type: 2}
+  - Saturn: {fileID: 11400000, guid: a067c6c7a06b3a1c5816830bc4a37855, type: 2}
+  - Uranus: {fileID: 11400000, guid: 70b56dc13096320099e789c2425663ba, type: 2}
+  - Neptune: {fileID: 11400000, guid: 5f0695cd5867241c39326d2ab197810a, type: 2}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

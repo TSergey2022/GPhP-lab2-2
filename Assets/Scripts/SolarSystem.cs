@@ -16,6 +16,8 @@ public class SolarSystem : MonoBehaviour
     public PlanetSO Uranus;
     public PlanetSO Neptune;
 
+    public float MagicNumber = 1058.8878352695322f;
+
     private List<PlanetSO> planets = new();
     
     public void SetupList() {
@@ -41,14 +43,14 @@ public class SolarSystem : MonoBehaviour
         }
         GameObject sun = null;
         PlanetScript.list.Clear();
+        // IGravity.grav.Clear();
         for (int i = 0; i < planets.Count; i++) {
             var planet = planets[i];
             var sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             sphere.name = planet.Name;
-            sphere.transform.localPosition = new Vector3(0, 0, planet.Distance);
-            if (i == 0) sphere.transform.localScale *= Mathf.Sqrt(planet.Radius) * 4;
-            else sphere.transform.localScale *= Mathf.Sqrt(planet.Radius) * 16;
-            var collider = sphere.AddComponent<SphereCollider>();
+            sphere.transform.localPosition = new Vector3(0, 0, planet.Distance / Mercury.Distance * 1058.8878352695322f);
+            if (i == 0) sphere.transform.localScale *= Mathf.Sqrt(planet.Radius) * 100;
+            else sphere.transform.localScale *= Mathf.Sqrt(planet.Radius) * 100;
             var rb = sphere.AddComponent<Rigidbody>();
             rb.isKinematic = i == 0;
             rb.useGravity = false;

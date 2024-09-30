@@ -15,12 +15,10 @@ public class DickShip : MonoBehaviour, IGravity {
     public float rotationFuelConsumptionRate = 2.5f; // Потребление топлива при вращении (вдвое меньшее)
     public float rotationSpeed = 90f; // Скорость вращения (градусов в секунду)
 
-    public float moveSpeed = 10f;
-
     private Rigidbody rb; // Reference to the Rigidbody component
     [SerializeField] private ParticleSystem ps;
 
-    private float finalSpeed = 0;
+    private bool move = false;
 
     void Start()
     {
@@ -35,20 +33,21 @@ public class DickShip : MonoBehaviour, IGravity {
 
     void Update() {
         var emission = ps.emission;
-        emission.enabled = finalSpeed > 0;
+        emission.enabled = move;
     }
 
     void FixedUpdate() {
+        rb.mass = dryMass + fuelMass;
         // Handle forward movement (W key)
         if (Input.GetKey(KeyCode.W)) {
-            MoveForward(Time.deltaTime);
+            MoveForward(Time.fixedDeltaTime);
         } else if (Input.GetKey(KeyCode.S)) {
-            MoveBackward(Time.deltaTime);
+            MoveBackward(Time.fixedDeltaTime);
         } else {
-            finalSpeed = 0;
+            move = false;
         }
 
-        Rotate();
+        Rotate(Time.fixedDeltaTime);
         foreach (var motion in IGravity.grav) {
             if (motion == (IGravity)this) {
                 continue;
@@ -65,18 +64,63 @@ public class DickShip : MonoBehaviour, IGravity {
     // Move the spaceship forward using Rigidbody
     private void MoveForward(float deltaTime)
     {
-        finalSpeed = Input.GetKey(KeyCode.LeftShift) ? moveSpeed * 2 : moveSpeed;
-        // Add force in the forward direction based on moveSpeed
-        rb.AddForce(transform.forward * finalSpeed, ForceMode.Acceleration);
-    }
-    private void MoveBackward(float deltaTime)
-    {
-        finalSpeed = Input.GetKey(KeyCode.LeftShift) ? moveSpeed * 2 : moveSpeed;
-        // Add force in the forward direction based on moveSpeed
-        rb.AddForce(-transform.forward * finalSpeed * 0.5f, ForceMode.Acceleration);
+        if (fuelMass <= 0)
+            return; // Нет топлива для движения
+
+        // Рассчитываем массу корабля с топливом
+        float currentMass = dryMass + fuelMass;
+
+        // Сколько топлива можем сжечь за данный промежуток времени
+        float fuelToBurn = fuelConsumptionRate * deltaTime;
+        if (fuelToBurn > fuelMass)
+        {
+            fuelToBurn = fuelMass; // Ограничиваем сжигаемое топливо доступным количеством
+        }
+
+        // Рассчёт изменения скорости по формуле импульса: Δv = v_exhaust * ln(m0 / m1)
+        float finalMass = currentMass - fuelToBurn;
+        float deltaV = exhaustVelocity * Mathf.Log(currentMass / finalMass);
+
+        // Применяем силу для ускорения корабля
+        Vector3 thrustDirection = transform.forward; // Двигаемся вперёд
+        rb.AddForce(thrustDirection * deltaV * rb.mass, ForceMode.Impulse);
+
+        // Уменьшаем массу топлива
+        fuelMass -= fuelToBurn;
+
+        move = true;
     }
 
-     private void Rotate()
+    private void MoveBackward(float deltaTime)
+    {
+        if (fuelMass <= 0)
+            return; // Нет топлива для движения
+
+        // Рассчитываем массу корабля с топливом
+        float currentMass = dryMass + fuelMass;
+
+        // Сколько топлива можем сжечь за данный промежуток времени
+        float fuelToBurn = fuelConsumptionRate * deltaTime * 0.5f;
+        if (fuelToBurn > fuelMass)
+        {
+            fuelToBurn = fuelMass; // Ограничиваем сжигаемое топливо доступным количеством
+        }
+
+        // Рассчёт изменения скорости по формуле импульса: Δv = v_exhaust * ln(m0 / m1)
+        float finalMass = currentMass - fuelToBurn;
+        float deltaV = exhaustVelocity  * 0.5f * Mathf.Log(currentMass / finalMass);
+
+        // Применяем силу для ускорения корабля
+        Vector3 thrustDirection = transform.forward; // Двигаемся вперёд
+        rb.AddForce(thrustDirection * deltaV * rb.mass, ForceMode.Impulse);
+
+        // Уменьшаем массу топлива
+        fuelMass -= fuelToBurn;
+
+        move = true;
+    }
+
+     private void Rotate(float deltaTime)
     {
         // Calculate rotation based on player input
         float horizontalInput = 0f;
@@ -98,13 +142,24 @@ public class DickShip : MonoBehaviour, IGravity {
         // If there is rotation input, apply the rotation
         if (horizontalInput != 0)
         {
-            if (Input.GetKey(KeyCode.LeftControl)) horizontalInput *= 2;
+            if (fuelMass <= 0)
+                return; // Нет топлива для поворота
+
+            float fuelToBurn = rotationFuelConsumptionRate * deltaTime;
+            if (fuelToBurn > fuelMass)
+            {
+                fuelToBurn = fuelMass; // Ограничиваем сжигаемое топливо доступным количеством
+            }
+
+            float rotationAmount = rotationSpeed * horizontalInput * deltaTime;
 
             // Calculate the target rotation based on input
-            Quaternion rotation = Quaternion.Euler(horizontalInput * rotationSpeed * Time.fixedDeltaTime, 0, 0f);
+            Quaternion rotation = Quaternion.Euler(rotationAmount, 0, 0);
 
             // Apply the rotation to the Rigidbody
             rb.MoveRotation(rb.rotation * rotation);
+
+            fuelMass -= fuelToBurn;
         }
     }
 
